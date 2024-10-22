@@ -1,10 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Copy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-$END$
+
+    <!-- Flask flash messages for success/error handling -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <ul>
+        {% for category, message in messages %}
+          <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <div class="container">
+        <form action="{{ url_for('copy') }}" method="POST">
+            <h2 class="form-header">Copy Database Tables</h2>
+            <div class="box left">
+                <h3>From Database</h3>
+
+                <div class="input-container">
+                <label for="from_db_type">DB Type (e.g., mysql, postgresql):</label>
+                <input type="text" id="from_db_type" name="from_db_type" required>
+                </div>
+
+                <div class="input-container">
+                <label for="from_host">Host:</label>
+                <input type="text" id="from_host" name="from_host" required>
+                </div>
+
+                <div class="input-container">
+                <label for="from_port">Port:</label>
+                <input type="text" id="from_port" name="from_port" required>
+                </div>
+
+                <div class="input-container">
+                <label for="from_username">Username:</label>
+                <input type="text" id="from_username" name="from_username" required>
+                </div>
+
+                <div class="input-container">
+                <label for="from_password">Password:</label>
+                <input type="password" id="from_password" name="from_password" required>
+                </div>
+
+                <div class="input-container">
+                <label for="from_database">Database Name:</label>
+                <input type="text" id="from_database" name="from_database" required>
+                </div>
+            </div>
+
+            <div class="box right">
+                <h3>To Database</h3>
+
+                <div class="input-container">
+                <label for="to_db_type">DB Type (e.g., mysql, postgresql):</label>
+                <input type="text" id="to_db_type" name="to_db_type" required>
+                </div>
+
+                <div class="input-container">
+                <label for="to_host">Host:</label>
+                <input type="text" id="to_host" name="to_host" required>
+                </div>
+
+                <div class="input-container">
+                <label for="to_port">Port:</label>
+                <input type="text" id="to_port" name="to_port" required>
+                </div>
+
+                <div class="input-container">
+                <label for="to_username">Username:</label>
+                <input type="text" id="to_username" name="to_username" required>
+                </div>
+
+                <div class="input-container">
+                <label for="to_password">Password:</label>
+                <input type="password" id="to_password" name="to_password" required>
+                </div>
+
+                <div class="input-container">
+                <label for="to_database">Database Name:</label>
+                <input type="text" id="to_database" name="to_database" required>
+                </div>
+            </div>
+
+            <div class="submit-btn">
+                <button type="submit">Copy Tables</button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>
