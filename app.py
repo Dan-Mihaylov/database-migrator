@@ -37,7 +37,6 @@ def copy_tables(from_engine, to_engine):
                     target_conn.execute(table.insert(), data_to_insert)
                     target_conn.commit()
 
-            # Check seq and change to max
             primary_key_column = table.primary_key.columns.values()[0]
             if primary_key_column.autoincrement:
                 with to_engine.connect() as target_conn:
@@ -45,7 +44,6 @@ def copy_tables(from_engine, to_engine):
                         text(f"SELECT MAX({primary_key_column.name}) FROM {table.name}")
                     ).scalar()
 
-                    # Adjust the sequence to start from max_id + 1 if necessary
                     if max_id is not None:
                         if to_engine.dialect.name == 'postgresql':
                             sequence_name = f"{table.name}_{primary_key_column.name}_seq"
