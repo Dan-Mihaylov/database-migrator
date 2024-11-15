@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine, MetaData, inspect, text
 from sqlalchemy.exc import SQLAlchemyError
 
 app = Flask(__name__)
@@ -27,6 +27,7 @@ def copy_tables(from_engine, to_engine):
             table.metadata = MetaData()
             table.create(to_engine, checkfirst=True)  # Create table in target DB if it doesn't exist
 
+            # Copy data
             with from_engine.connect() as source_conn, to_engine.connect() as target_conn:
                 rows = source_conn.execute(table.select()).fetchall()
 
@@ -36,10 +37,31 @@ def copy_tables(from_engine, to_engine):
                     target_conn.execute(table.insert(), data_to_insert)
                     target_conn.commit()
 
-        flash("Tables and data copied successfully!", "success")
+            # Check seq and change to max
+            primary_key_column = table.primary_key.columns.values()[0]
+            if primary_key_column.autoincrement:
+                with to_engine.connect() as target_conn:
+                    max_id = target_conn.execute(
+                        text(f"SELECT MAX({primary_key_column.name}) FROM {table.name}")
+                    ).scalar()
+
+                    # Adjust the sequence to start from max_id + 1 if necessary
+                    if max_id is not None:
+                        if to_engine.dialect.name == 'postgresql':
+                            sequence_name = f"{table.name}_{primary_key_column.name}_seq"
+                            target_conn.execute(
+                                text(f"SELECT setval('{sequence_name}', :new_start, false)"),
+                                {"new_start": max_id + 1}
+                            )
+                        elif to_engine.dialect.name == 'mysql':
+                            target_conn.execute(
+                                text(f"ALTER TABLE {table.name} AUTO_INCREMENT = :new_start"),
+                                {"new_start": max_id + 1}
+                            )
+
+        flash("Tables and data copied successfully, including sequence adjustments!", "success")
     except Exception as e:
         flash(f"Error copying tables and data: {str(e)}", "danger")
-
 
 @app.route('/')
 def index():
